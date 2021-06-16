@@ -12,6 +12,11 @@ use ReflectionParameter;
 class Maker
 {
     /**
+     * @var array bindings for the container
+     */
+    protected $bindings = [];
+
+    /**
      * @var Container container for the application
      */
     protected $container;
@@ -40,7 +45,7 @@ class Maker
      */
     public function bind($abstract, Closure $concrete)
     {
-        $this->container->bind($abstract, $concrete);
+        $this->bindings[$abstract] = $concrete;
     }
 
     /**
@@ -146,12 +151,11 @@ class Maker
      */
     protected function getBinding($abstract)
     {
-        if (!$this->isBound($abstract)) {
-            return $abstract;
+        if ($this->container->bound($abstract)) {
+            return $this->container->getBindings()[$abstract]['concrete'];
         }
 
-        return $this->container->getBindings()[$abstract]['concrete'];
-
+        return $this->isBound($abstract) ? $this->bindings[$abstract] : $abstract;
     }
 
     /**
@@ -161,7 +165,7 @@ class Maker
      */
     protected function isBound($abstract)
     {
-        return $this->container->bound($abstract);
+        return array_key_exists($abstract, $this->bindings);
     }
 
     /**
